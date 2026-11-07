@@ -61,7 +61,7 @@
       padding-bottom: 110px;
     }
 
-    /* Sleek Custom Scrollbar */
+    /* Custom Scrollbar */
     #scrollContainer::-webkit-scrollbar,
     .trans-content::-webkit-scrollbar,
     .surah-list::-webkit-scrollbar {
@@ -405,7 +405,7 @@
       border-radius: 99px;
     }
 
-    /* Common Drawer Styles */
+    /* Drawer Styles */
     .drawer {
       position: fixed;
       top: 0;
@@ -427,10 +427,10 @@
     }
     .drawer-right.open { transform: translateX(0); }
 
-    /* Left Drawer (Amharic Translation Panel) */
+    /* Left Drawer (Arabic & Amharic Translation Panel) */
     .drawer-left {
       left: 0;
-      width: min(540px, 94vw);
+      width: min(560px, 94vw);
       border-right: 1px solid var(--border);
       transform: translateX(-100%);
       direction: ltr;
@@ -516,7 +516,7 @@
       direction: ltr;
     }
 
-    /* Amharic Translation Content Area */
+    /* Translation Cards Area */
     .trans-content {
       flex: 1;
       overflow-y: auto;
@@ -532,7 +532,7 @@
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 12px;
-      padding: 1rem;
+      padding: 1rem 1.1rem;
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
@@ -541,20 +541,21 @@
 
     .trans-card:hover {
       background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(212, 175, 55, 0.3);
+      border-color: rgba(212, 175, 55, 0.35);
     }
 
     .ayah-badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
-      font-size: 0.78rem;
-      font-weight: 600;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 700;
       color: var(--accent);
       background: rgba(212, 175, 55, 0.12);
       border-radius: 6px;
-      padding: 0.2rem 0.5rem;
+      padding: 0.2rem 0.55rem;
       width: fit-content;
+      font-family: 'Noto Sans Ethiopic', sans-serif;
     }
 
     .ayah-arabic {
@@ -569,7 +570,7 @@
     .ayah-amharic {
       font-family: 'Noto Sans Ethiopic', sans-serif;
       font-size: 1.05rem;
-      line-height: 1.75;
+      line-height: 1.8;
       color: #e2e8f0;
       direction: ltr;
       text-align: left;
@@ -675,7 +676,7 @@
     <ul class="surah-list" id="surahList"></ul>
   </aside>
 
-  <!-- Amharic Translation Drawer Panel -->
+  <!-- Arabic & Amharic Translation Drawer Panel -->
   <aside class="drawer drawer-left" id="transDrawer">
     <div class="drawer-header">
       <div>
@@ -683,14 +684,14 @@
           <span>የቁርኣን ትርጉም</span>
           <span id="transPageBadge" style="font-size: 0.8rem; color: var(--accent); background: rgba(212,175,55,0.15); padding: 0.15rem 0.5rem; border-radius: 999px;">ገጽ 1</span>
         </div>
-        <span class="drawer-subtitle">ሳዲቅ እና ሳኒ ሐቢብ (Tanzil am.sadiq)</span>
+        <span class="drawer-subtitle">ሳዲቅ እና ሳኒ ሐቢብ • ከአረብኛ ጽሑፍ ጋር (qur-ar & qur-am)</span>
       </div>
       <button class="btn btn-icon" id="btnCloseTrans">✕</button>
     </div>
     <div class="trans-content" id="transContent">
       <div class="trans-loading">
         <div class="spinner"></div>
-        <span>ትርጉሙን በመጫን ላይ...</span>
+        <span>ጽሑፉንና ትርጉሙን በመጫን ላይ...</span>
       </div>
     </div>
   </aside>
@@ -700,12 +701,22 @@
       const TOTAL_PAGES = 604;
       const STORAGE_KEY = 'oxpc3_quran_page';
 
+      // Ayah counts for each of the 114 Surahs
+      const SURAH_AYAH_COUNTS = [
+        7, 286, 200, 176, 120, 165, 206, 75, 129, 109, 123, 111, 43, 52, 99, 128, 111, 110, 98, 135,
+        112, 78, 118, 64, 77, 227, 93, 88, 69, 60, 34, 30, 73, 54, 45, 83, 182, 88, 75, 85,
+        54, 53, 89, 59, 37, 35, 38, 29, 18, 45, 60, 49, 62, 55, 78, 96, 29, 22, 24, 13,
+        14, 11, 11, 18, 12, 12, 30, 52, 52, 44, 28, 28, 20, 56, 40, 31, 50, 40, 46, 42,
+        29, 19, 36, 25, 22, 17, 19, 26, 30, 20, 15, 21, 11, 8, 8, 19, 5, 8, 8, 11,
+        11, 8, 3, 9, 5, 4, 7, 3, 6, 3, 5, 4, 5, 6
+      ];
+
       function getPageUrl(page) {
         return `./img/page${String(page).padStart(3, '0')}.webp`;
       }
 
       function toArabicDigits(num) {
-        return String(num).replace(/[0-9]/g, d => '٠١٢٣٤٥٦ desert٩'[d] || '٠١٢٣٤٥٦٧٨٩'[d]);
+        return String(num).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
       }
 
       const SURAHS = [
@@ -783,7 +794,10 @@
       let hideTimeout = null;
       let isProgrammaticScroll = false;
       let isHoveringDock = false;
-      let localAmharicData = null; // Stores ./amharic.json when loaded
+      
+      let arabicTextMap = null;  // Loaded from ./qur-ar.txt
+      let amharicTextMap = null; // Loaded from ./qur-am.txt
+      const pageVersesCache = new Map();
 
       // Elements
       const scrollContainer = document.getElementById('scrollContainer');
@@ -855,70 +869,116 @@
 
       document.querySelectorAll('.quran-page').forEach(img => imageObserver.observe(img));
 
-      // Fast Local amharic.json Loader
-      async function initLocalAmharicData() {
-        if (localAmharicData) return true;
-        try {
-          const res = await fetch('./amharic.json');
-          if (res.ok) {
-            localAmharicData = await res.json();
-            return true;
+      // Universal Tanzil Text Parser (handles both `sura|aya|text` and sequential lines)
+      function parseTanzilText(rawText) {
+        const map = new Map();
+        const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+        const hasDelimiters = lines.length > 0 && lines[0].includes('|');
+
+        if (hasDelimiters) {
+          lines.forEach(line => {
+            const parts = line.split('|');
+            if (parts.length >= 3) {
+              const sura = parts[0].trim();
+              const aya = parts[1].trim();
+              const text = parts.slice(2).join('|').trim();
+              map.set(`${sura}:${aya}`, text);
+            }
+          });
+        } else {
+          // Sequential 6,236 lines without delimiter
+          let lineIdx = 0;
+          for (let s = 1; s <= 114; s++) {
+            const count = SURAH_AYAH_COUNTS[s - 1];
+            for (let a = 1; a <= count; a++) {
+              if (lineIdx < lines.length) {
+                map.set(`${s}:${a}`, lines[lineIdx]);
+                lineIdx++;
+              }
+            }
           }
-        } catch (e) {
-          console.warn('Local amharic.json not found, falling back to network.');
         }
-        return false;
+        return map;
       }
 
-      // Online fallback providers in case amharic.json is still uploading
-      async function fetchFromQuranCom(page) {
-        const url = `https://api.quran.com/api/v4/verses/by_page/${page}?translations=87&fields=text_uthmani`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('API failed');
+      // Preload both Arabic (qur-ar.txt) and Amharic (qur-am.txt) files
+      async function loadLocalTexts() {
+        if (arabicTextMap && amharicTextMap) return true;
+        try {
+          const [arRes, amRes] = await Promise.all([
+            fetch('./qur-ar.txt'),
+            fetch('./qur-am.txt')
+          ]);
+
+          if (!arRes.ok || !amRes.ok) throw new Error('Files could not be loaded');
+
+          const [arRaw, amRaw] = await Promise.all([arRes.text(), amRes.text()]);
+          arabicTextMap = parseTanzilText(arRaw);
+          amharicTextMap = parseTanzilText(amRaw);
+
+          console.log(`✅ Loaded ${arabicTextMap.size} Arabic & ${amharicTextMap.size} Amharic verses from repo.`);
+          return true;
+        } catch (e) {
+          console.warn('Could not load local qur-ar.txt or qur-am.txt:', e);
+          return false;
+        }
+      }
+
+      // Get list of verse keys for the page (e.g. ["1:1", "1:2"...])
+      async function getPageVerses(page) {
+        if (pageVersesCache.has(page)) return pageVersesCache.get(page);
+
+        const storageKey = `page_keys_v1_${page}`;
+        const localSaved = localStorage.getItem(storageKey);
+        if (localSaved) {
+          const parsed = JSON.parse(localSaved);
+          pageVersesCache.set(page, parsed);
+          return parsed;
+        }
+
+        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${page}?fields=verse_key`);
+        if (!res.ok) throw new Error('Failed to get page keys');
         const data = await res.json();
-        return data.verses.map(v => {
+        
+        const verseList = data.verses.map(v => {
           const [sura, aya] = v.verse_key.split(':');
-          const sInfo = SURAHS.find(s => s.n === parseInt(sura, 10));
-          return {
-            surahName: sInfo ? sInfo.name : `سورة ${sura}`,
-            surahEnglish: sInfo ? sInfo.name : `Surah ${sura}`,
-            numberInSurah: aya,
-            arabicText: v.text_uthmani || '',
-            amharicText: (v.translations[0]?.text || '').replace(/<[^>]*>/g, '').trim()
-          };
+          return { key: v.verse_key, sura: parseInt(sura, 10), aya: parseInt(aya, 10) };
         });
+
+        pageVersesCache.set(page, verseList);
+        try { localStorage.setItem(storageKey, JSON.stringify(verseList)); } catch (e) {}
+        return verseList;
       }
 
+      // Load Translation and Arabic side-by-side
       async function loadTranslation(page) {
         transPageBadge.innerText = `ገጽ ${page}`;
-
-        // 1. Instant load from local repository file (amharic.json)
-        if (localAmharicData && localAmharicData[page]) {
-          renderTranslation(localAmharicData[page]);
-          return;
-        }
 
         transContent.innerHTML = `
           <div class="trans-loading">
             <div class="spinner"></div>
-            <span>ትርጉሙን በመጫን ላይ...</span>
+            <span>የገጽ ${page} ጽሑፍና ትርጉም ከመዝገብ (qur-ar & qur-am) በመጫን ላይ...</span>
           </div>`;
 
-        const hasLocal = await initLocalAmharicData();
-        if (hasLocal && localAmharicData[page]) {
-          renderTranslation(localAmharicData[page]);
+        const filesOk = await loadLocalTexts();
+        if (!filesOk) {
+          transContent.innerHTML = `
+            <div class="trans-error">
+              <span>⚠️ qur-ar.txt ወይም qur-am.txt አልተገኘም።</span>
+              <span style="font-size: 0.8rem;">እባክዎ ሁለቱም ፋይሎች በGitHub repo ስር መኖራቸውን ያረጋግጡ።</span>
+              <button class="btn" style="border: 1px solid var(--border); margin-top: 0.5rem;" onclick="window.retryTranslation(${page})">እንደገና ሞክር</button>
+            </div>`;
           return;
         }
 
-        // 2. Fallback to API if amharic.json isn't uploaded yet
         try {
-          const onlineData = await fetchFromQuranCom(page);
-          renderTranslation(onlineData);
+          const verses = await getPageVerses(page);
+          renderVerseCards(verses);
         } catch (err) {
           transContent.innerHTML = `
             <div class="trans-error">
-              <span>⚠️ ትርጉሙን መጫን አልተቻለም።</span>
-              <span style="font-size: 0.8rem;">እባክዎ amharic.json ፋይል በGitHub repo ውስጥ መኖሩን ያረጋግጡ።</span>
+              <span>⚠️ የገጹን አያቶች ዝርዝር ማግኘት አልተቻለም።</span>
+              <span style="font-size: 0.8rem;">እባክዎ የበይነመረብ ግንኙነትዎን ያረጋግጡ።</span>
               <button class="btn" style="border: 1px solid var(--border); margin-top: 0.5rem;" onclick="window.retryTranslation(${page})">እንደገና ሞክር</button>
             </div>`;
         }
@@ -926,22 +986,28 @@
 
       window.retryTranslation = loadTranslation;
 
-      function renderTranslation(ayahs) {
-        if (!ayahs || ayahs.length === 0) {
+      // Render Arabic Verse + Amharic Translation
+      function renderVerseCards(verses) {
+        if (!verses || verses.length === 0) {
           transContent.innerHTML = '<div class="trans-error">ምንም አያህ አልተገኘም።</div>';
           return;
         }
 
         transContent.innerHTML = '';
-        ayahs.forEach(ayah => {
+        verses.forEach(v => {
+          const sInfo = SURAHS.find(s => s.n === v.sura);
+          const surahTitle = sInfo ? `${sInfo.name} (${sInfo.n})` : `ሱራ ${v.sura}`;
+          const arText = arabicTextMap ? (arabicTextMap.get(v.key) || '') : '';
+          const amText = amharicTextMap ? (amharicTextMap.get(v.key) || 'ትርጉም አልተገኘም') : '';
+
           const card = document.createElement('div');
           card.className = 'trans-card';
           card.innerHTML = `
             <div class="ayah-badge">
-              <span>${ayah.surahEnglish} (${ayah.surahName})</span> : <span>አያህ ${ayah.numberInSurah}</span>
+              <span>ሱራ ${surahTitle}</span> : <span>አያህ ${v.aya}</span>
             </div>
-            <div class="ayah-arabic">${ayah.arabicText}</div>
-            <div class="ayah-amharic">${ayah.amharicText}</div>
+            ${arText ? `<div class="ayah-arabic">${arText}</div>` : ''}
+            <div class="ayah-amharic">${amText}</div>
           `;
           transContent.appendChild(card);
         });
@@ -1125,7 +1191,7 @@
       document.getElementById('btnCloseDrawer').onclick = () => surahDrawer.classList.remove('open');
       searchSurah.oninput = e => renderSurahs(e.target.value.trim());
 
-      // Amharic Translation Drawer Toggle
+      // Translation Drawer Toggle
       btnTrans.onclick = () => {
         surahDrawer.classList.remove('open');
         const isOpen = transDrawer.classList.toggle('open');
@@ -1150,11 +1216,11 @@
         }
       });
 
-      // Restore saved reading position and preload amharic.json in the background
+      // Initialize
       setTimeout(() => {
         scrollToPage(currentPage, false);
         showUI();
-        initLocalAmharicData();
+        loadLocalTexts(); // Preload both qur-ar.txt and qur-am.txt in background
       }, 100);
     })();
   </script>
