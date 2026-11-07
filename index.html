@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>The Holy Quran — القرآن الكريم</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Google Fonts: Amiri (Arabic), Inter (UI), Noto Serif Ethiopic (Classical), Noto Sans Ethiopic (Modern) -->
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Ethiopic:wght@400;500;600;700&family=Noto+Serif+Ethiopic:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
     /* =========================================================
@@ -42,6 +43,8 @@
       --trans-badge-text: #82600e;
       --trans-badge-surah: #0f172a;
       --trans-close-btn: #475569;
+      --trans-control-bg: rgba(0, 0, 0, 0.05);
+      --trans-control-border: rgba(0, 0, 0, 0.1);
       --trans-shadow: 0 0 35px rgba(0, 0, 0, 0.25);
       --trans-scrollbar: rgba(212, 175, 55, 0.3);
 
@@ -50,6 +53,10 @@
       --drawer-text: #f0f6fc;
       --drawer-subtext: #8b949e;
       --drawer-item-hover: rgba(212, 175, 55, 0.18);
+
+      /* Typography Preferences */
+      --amharic-font: 'Noto Serif Ethiopic', 'Abyssinica SIL', 'Nyala', serif;
+      --amharic-font-size: 1.08rem;
     }
 
     /* =========================================================
@@ -74,6 +81,8 @@
       --trans-badge-text: #f3cf65;
       --trans-badge-surah: #ffffff;
       --trans-close-btn: #cbd5e1;
+      --trans-control-bg: rgba(255, 255, 255, 0.06);
+      --trans-control-border: rgba(255, 255, 255, 0.12);
       --trans-shadow: 0 0 40px rgba(0, 0, 0, 0.85);
       --trans-scrollbar: rgba(212, 175, 55, 0.25);
 
@@ -107,6 +116,8 @@
       --trans-badge-text: #6d4605;
       --trans-badge-surah: #2a1f14;
       --trans-close-btn: #5c4b37;
+      --trans-control-bg: rgba(120, 90, 40, 0.08);
+      --trans-control-border: rgba(120, 90, 40, 0.18);
       --trans-shadow: 0 0 35px rgba(60, 40, 15, 0.25);
       --trans-scrollbar: rgba(180, 135, 45, 0.35);
 
@@ -522,7 +533,7 @@
     .drawer-left.open { transform: translateX(0); }
 
     .drawer-header {
-      padding: 1.1rem 1.25rem 0.9rem;
+      padding: 1.1rem 1.25rem 0.85rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -548,7 +559,7 @@
 
     .drawer-left .drawer-title {
       color: var(--trans-title);
-      font-family: 'Inter', 'Noto Sans Ethiopic', sans-serif;
+      font-family: 'Inter', sans-serif;
     }
 
     .drawer-subtitle {
@@ -569,6 +580,41 @@
 
     #btnCloseTrans {
       color: var(--trans-close-btn);
+    }
+
+    /* Smart Typography Toolbar inside Translation Drawer */
+    .trans-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.45rem 1.25rem;
+      background: var(--trans-control-bg);
+      border-bottom: 1px solid var(--trans-header-border);
+      font-size: 0.82rem;
+    }
+
+    .trans-tool-group {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .tool-btn {
+      background: transparent;
+      border: 1px solid var(--trans-control-border);
+      color: var(--trans-amharic);
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .tool-btn:hover, .tool-btn.active {
+      background: var(--trans-badge-bg);
+      border-color: var(--trans-border);
+      color: var(--trans-title);
     }
 
     .drawer-search {
@@ -688,13 +734,13 @@
     }
 
     .ayah-amharic {
-      font-family: 'Noto Sans Ethiopic', sans-serif;
-      font-size: 1.05rem;
+      font-family: var(--amharic-font);
+      font-size: var(--amharic-font-size);
       line-height: 1.8;
       color: var(--trans-amharic);
       direction: ltr;
       text-align: left;
-      transition: color 0.3s ease;
+      transition: color 0.3s ease, font-size 0.2s ease;
     }
 
     .trans-loading, .trans-error {
@@ -807,6 +853,21 @@
       </div>
       <button class="btn btn-icon" id="btnCloseTrans">✕</button>
     </div>
+
+    <!-- Smart Typography Bar (Font Style & Font Size Controls) -->
+    <div class="trans-toolbar">
+      <div class="trans-tool-group">
+        <span style="color: var(--trans-subtitle); font-size: 0.75rem;">Font:</span>
+        <button class="tool-btn active" id="btnFontSerif" title="Classical Ethiopic Serif (Scripture)">Serif</button>
+        <button class="tool-btn" id="btnFontSans" title="Modern Ethiopic Sans">Sans</button>
+      </div>
+      <div class="trans-tool-group">
+        <span style="color: var(--trans-subtitle); font-size: 0.75rem;">Size:</span>
+        <button class="tool-btn" id="btnSizeDec" title="Decrease font size">A-</button>
+        <button class="tool-btn" id="btnSizeInc" title="Increase font size">A+</button>
+      </div>
+    </div>
+
     <div class="trans-content" id="transContent">
       <div class="trans-loading">
         <div class="spinner"></div>
@@ -820,6 +881,8 @@
       const TOTAL_PAGES = 604;
       const STORAGE_KEY = 'oxpc3_quran_page';
       const THEME_STORAGE_KEY = 'oxpc3_quran_theme';
+      const FONT_STYLE_KEY = 'oxpc3_amharic_font_style';
+      const FONT_SIZE_KEY = 'oxpc3_amharic_font_size';
 
       // Ayah counts for each of the 114 Surahs
       const SURAH_AYAH_COUNTS = [
@@ -908,6 +971,9 @@
       // State
       let currentPage = parseInt(localStorage.getItem(STORAGE_KEY)) || 1;
       let themeMode = parseInt(localStorage.getItem(THEME_STORAGE_KEY)) || 0; // 0: Light, 1: Dark, 2: Sepia
+      let amharicFontStyle = localStorage.getItem(FONT_STYLE_KEY) || 'serif';
+      let amharicFontSize = parseFloat(localStorage.getItem(FONT_SIZE_KEY)) || 1.08;
+      
       let hideTimeout = null;
       let isProgrammaticScroll = false;
       let isHoveringDock = false;
@@ -937,8 +1003,12 @@
       const transPageBadge = document.getElementById('transPageBadge');
       const surahList = document.getElementById('surahList');
       const searchSurah = document.getElementById('searchSurah');
+      const btnFontSerif = document.getElementById('btnFontSerif');
+      const btnFontSans = document.getElementById('btnFontSans');
+      const btnSizeInc = document.getElementById('btnSizeInc');
+      const btnSizeDec = document.getElementById('btnSizeDec');
 
-      // Apply Initial Theme
+      // Apply Theme
       function applyTheme(mode) {
         document.body.className = '';
         if (mode === 1) document.body.classList.add('mode-dark');
@@ -946,6 +1016,40 @@
         localStorage.setItem(THEME_STORAGE_KEY, mode);
       }
       applyTheme(themeMode);
+
+      // Apply Typography Preferences
+      function updateTypography() {
+        const root = document.documentElement;
+        if (amharicFontStyle === 'sans') {
+          root.style.setProperty('--amharic-font', "'Noto Sans Ethiopic', 'Kefa', system-ui, sans-serif");
+          btnFontSans.classList.add('active');
+          btnFontSerif.classList.remove('active');
+        } else {
+          root.style.setProperty('--amharic-font', "'Noto Serif Ethiopic', 'Abyssinica SIL', 'Nyala', serif");
+          btnFontSerif.classList.add('active');
+          btnFontSans.classList.remove('active');
+        }
+        root.style.setProperty('--amharic-font-size', `${amharicFontSize}rem`);
+        localStorage.setItem(FONT_STYLE_KEY, amharicFontStyle);
+        localStorage.setItem(FONT_SIZE_KEY, amharicFontSize);
+      }
+      updateTypography();
+
+      // Typography Controls
+      btnFontSerif.onclick = () => { amharicFontStyle = 'serif'; updateTypography(); };
+      btnFontSans.onclick = () => { amharicFontStyle = 'sans'; updateTypography(); };
+      btnSizeInc.onclick = () => {
+        if (amharicFontSize < 1.6) {
+          amharicFontSize = +(amharicFontSize + 0.08).toFixed(2);
+          updateTypography();
+        }
+      };
+      btnSizeDec.onclick = () => {
+        if (amharicFontSize > 0.85) {
+          amharicFontSize = +(amharicFontSize - 0.08).toFixed(2);
+          updateTypography();
+        }
+      };
 
       // 1. Build Feed of 604 Pages
       const fragment = document.createDocumentFragment();
@@ -1011,7 +1115,6 @@
             }
           });
         } else {
-          // Sequential 6,236 lines
           let lineIdx = 0;
           for (let s = 1; s <= 114; s++) {
             const count = SURAH_AYAH_COUNTS[s - 1];
