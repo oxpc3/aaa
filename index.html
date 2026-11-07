@@ -61,7 +61,7 @@
       padding-bottom: 110px;
     }
 
-    /* Custom Scrollbar */
+    /* Sleek Custom Scrollbar */
     #scrollContainer::-webkit-scrollbar,
     .trans-content::-webkit-scrollbar,
     .surah-list::-webkit-scrollbar {
@@ -115,6 +115,63 @@
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
       image-rendering: high-quality;
       min-height: 400px;
+    }
+
+    /* Smart & Modern Quran Page Number Overlay Badge */
+    .page-number-badge {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(14, 18, 25, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(212, 175, 55, 0.38);
+      border-radius: 9999px;
+      padding: 0.26rem 0.9rem;
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      z-index: 10;
+      pointer-events: none;
+      white-space: nowrap;
+      transition: var(--transition);
+      letter-spacing: 0.3px;
+    }
+
+    .page-wrapper:hover .page-number-badge {
+      background: rgba(14, 18, 25, 0.96);
+      border-color: var(--accent-hover);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 14px rgba(212, 175, 55, 0.25);
+      color: var(--accent-hover);
+    }
+
+    .badge-surah {
+      font-family: 'Amiri', serif;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+
+    .badge-dot {
+      color: rgba(212, 175, 55, 0.6);
+      font-size: 0.75rem;
+    }
+
+    .badge-ar {
+      font-family: 'Amiri', serif;
+      font-size: 0.92rem;
+      color: var(--accent-hover);
+    }
+
+    .badge-en {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      direction: ltr;
     }
 
     /* Floating Toolbar Container */
@@ -578,7 +635,6 @@
           <span>الفهرس</span>
         </button>
 
-        <!-- Amharic Translation Toggle Button -->
         <button class="btn btn-trans" id="btnTrans" title="የአማርኛ ትርጉም (ሳዲቅ እና ሳኒ)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><path d="M8 7h8"></path><path d="M8 11h6"></path></svg>
           <span>ትርጉም</span>
@@ -652,6 +708,10 @@
         return `./img/page${String(page).padStart(3, '0')}.webp`;
       }
 
+      function toArabicDigits(num) {
+        return String(num).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+      }
+
       const SURAHS = [
         { n: 1, name: "الفاتحة", page: 1 }, { n: 2, name: "البقرة", page: 2 },
         { n: 3, name: "آل عمران", page: 50 }, { n: 4, name: "النساء", page: 77 },
@@ -712,6 +772,15 @@
         { n: 113, name: "الفلق", page: 604 }, { n: 114, name: "الناس", page: 604 }
       ];
 
+      function getSurahNameForPage(p) {
+        let surah = SURAHS[0];
+        for (let i = 0; i < SURAHS.length; i++) {
+          if (SURAHS[i].page <= p) surah = SURAHS[i];
+          else break;
+        }
+        return surah.name;
+      }
+
       // State
       let currentPage = parseInt(localStorage.getItem(STORAGE_KEY)) || 1;
       let themeMode = 0;
@@ -742,7 +811,7 @@
       const surahList = document.getElementById('surahList');
       const searchSurah = document.getElementById('searchSurah');
 
-      // 1. Build Feed of 604 Pages
+      // 1. Build Feed of 604 Pages with Smart Page Badges
       const fragment = document.createDocumentFragment();
       for (let i = 1; i <= TOTAL_PAGES; i++) {
         const wrapper = document.createElement('div');
@@ -755,7 +824,19 @@
         img.alt = `صفحة ${i}`;
         img.dataset.src = getPageUrl(i);
 
+        // Smart Modern Quran Page Number Badge
+        const badge = document.createElement('div');
+        badge.className = 'page-number-badge';
+        badge.innerHTML = `
+          <span class="badge-surah">${getSurahNameForPage(i)}</span>
+          <span class="badge-dot">•</span>
+          <span class="badge-ar">ص ${toArabicDigits(i)}</span>
+          <span class="badge-dot">•</span>
+          <span class="badge-en">${i}</span>
+        `;
+
         wrapper.appendChild(img);
+        wrapper.appendChild(badge);
         fragment.appendChild(wrapper);
       }
       pagesFeed.appendChild(fragment);
@@ -779,7 +860,7 @@
 
       document.querySelectorAll('.quran-page').forEach(img => imageObserver.observe(img));
 
-      // Provider 1: Quran.com API (ID 87 = Sadiq & Sani Habib, completely unblocked)
+      // Provider 1: Quran.com API (ID 87 = Sadiq & Sani Habib)
       async function fetchFromQuranCom(page) {
         const url = `https://api.quran.com/api/v4/verses/by_page/${page}?translations=87&fields=text_uthmani`;
         const res = await fetch(url);
@@ -805,7 +886,7 @@
         });
       }
 
-      // Provider 2: QuranEnc.com API (Amharic Sadiq)
+      // Provider 2: QuranEnc.com API
       async function fetchFromQuranEnc(page) {
         const url = `https://quranenc.com/api/v1/translation/page/amharic_sadiq/${page}`;
         const res = await fetch(url);
@@ -885,7 +966,6 @@
         }
       }
 
-      // Global reference for retry button
       window.retryTranslation = loadTranslation;
 
       function renderTranslation(ayahs) {
@@ -918,7 +998,6 @@
         progressFill.style.width = `${(p / TOTAL_PAGES) * 100}%`;
         localStorage.setItem(STORAGE_KEY, p);
 
-        // Auto-update open translation drawer on scroll
         if (transDrawer.classList.contains('open')) {
           loadTranslation(p);
         }
