@@ -117,7 +117,7 @@
       min-height: 400px;
     }
 
-    /* Smart & Modern Quran Page Number Overlay Badge */
+    /* Smart Quran Page Number Badge */
     .page-number-badge {
       position: absolute;
       bottom: 14px;
@@ -140,7 +140,6 @@
       pointer-events: none;
       white-space: nowrap;
       transition: var(--transition);
-      letter-spacing: 0.3px;
     }
 
     .page-wrapper:hover .page-number-badge {
@@ -195,7 +194,7 @@
       opacity: 0;
     }
 
-    /* Fixed-Width Solid Dock (Never Expands) */
+    /* Fixed-Width Solid Dock */
     .dock-container {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -610,7 +609,6 @@
 
   <!-- Bottom Floating Toolbar -->
   <footer class="bottom-bar" id="bottomBar">
-    <!-- Floating Page Scrubber Popover -->
     <div class="page-popover" id="pagePopover">
       <div class="popover-header">
         <span class="popover-title">انتقال إلى صفحة</span>
@@ -622,19 +620,18 @@
       <input type="range" class="popover-slider" id="popoverSlider" min="1" max="604" value="1" dir="ltr" />
     </div>
 
-    <!-- Solid Fixed-Size Dock (Never Expands) -->
     <div class="dock-container" id="dockContainer">
       <div class="progress-line">
         <div class="progress-fill" id="progressFill"></div>
       </div>
 
-      <!-- Controls: Surah List, Amharic Translation, Theme, Fullscreen -->
       <div class="dock-section">
         <button class="btn btn-index" id="btnIndex" title="فهرس السور">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 6h16M4 12h16M4 18h7"></path></svg>
           <span>الفهرس</span>
         </button>
 
+        <!-- Amharic Translation Button -->
         <button class="btn btn-trans" id="btnTrans" title="የአማርኛ ትርጉም (ሳዲቅ እና ሳኒ)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><path d="M8 7h8"></path><path d="M8 11h6"></path></svg>
           <span>ትርጉም</span>
@@ -651,7 +648,6 @@
 
       <div class="dock-divider"></div>
 
-      <!-- Navigation & Fixed Page Pill Button -->
       <div class="dock-section">
         <button class="btn btn-icon" id="btnNext" title="الصفحة التالية">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -669,7 +665,7 @@
     </div>
   </footer>
 
-  <!-- Surah Quick-Picker Drawer (Right) -->
+  <!-- Surah Quick-Picker Drawer -->
   <aside class="drawer drawer-right" id="surahDrawer">
     <div class="drawer-header">
       <span class="drawer-title-ar">سور القرآن الكريم</span>
@@ -679,7 +675,7 @@
     <ul class="surah-list" id="surahList"></ul>
   </aside>
 
-  <!-- Amharic Translation Drawer Panel (Left) -->
+  <!-- Amharic Translation Drawer Panel -->
   <aside class="drawer drawer-left" id="transDrawer">
     <div class="drawer-header">
       <div>
@@ -687,7 +683,7 @@
           <span>የቁርኣን ትርጉም</span>
           <span id="transPageBadge" style="font-size: 0.8rem; color: var(--accent); background: rgba(212,175,55,0.15); padding: 0.15rem 0.5rem; border-radius: 999px;">ገጽ 1</span>
         </div>
-        <span class="drawer-subtitle">ሳዲቅ እና ሳኒ ሐቢብ (Muhammed Sadiq & Sani)</span>
+        <span class="drawer-subtitle">ሳዲቅ እና ሳኒ ሐቢብ (Tanzil am.sadiq)</span>
       </div>
       <button class="btn btn-icon" id="btnCloseTrans">✕</button>
     </div>
@@ -709,7 +705,7 @@
       }
 
       function toArabicDigits(num) {
-        return String(num).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+        return String(num).replace(/[0-9]/g, d => '٠١٢٣٤٥٦ desert٩'[d] || '٠١٢٣٤٥٦٧٨٩'[d]);
       }
 
       const SURAHS = [
@@ -787,7 +783,7 @@
       let hideTimeout = null;
       let isProgrammaticScroll = false;
       let isHoveringDock = false;
-      const transCache = new Map();
+      let localAmharicData = null; // Stores ./amharic.json when loaded
 
       // Elements
       const scrollContainer = document.getElementById('scrollContainer');
@@ -811,7 +807,7 @@
       const surahList = document.getElementById('surahList');
       const searchSurah = document.getElementById('searchSurah');
 
-      // 1. Build Feed of 604 Pages with Smart Page Badges
+      // 1. Build Feed of 604 Pages
       const fragment = document.createDocumentFragment();
       for (let i = 1; i <= TOTAL_PAGES; i++) {
         const wrapper = document.createElement('div');
@@ -824,7 +820,6 @@
         img.alt = `صفحة ${i}`;
         img.dataset.src = getPageUrl(i);
 
-        // Smart Modern Quran Page Number Badge
         const badge = document.createElement('div');
         badge.className = 'page-number-badge';
         badge.innerHTML = `
@@ -860,107 +855,70 @@
 
       document.querySelectorAll('.quran-page').forEach(img => imageObserver.observe(img));
 
-      // Provider 1: Quran.com API (ID 87 = Sadiq & Sani Habib)
+      // Fast Local amharic.json Loader
+      async function initLocalAmharicData() {
+        if (localAmharicData) return true;
+        try {
+          const res = await fetch('./amharic.json');
+          if (res.ok) {
+            localAmharicData = await res.json();
+            return true;
+          }
+        } catch (e) {
+          console.warn('Local amharic.json not found, falling back to network.');
+        }
+        return false;
+      }
+
+      // Online fallback providers in case amharic.json is still uploading
       async function fetchFromQuranCom(page) {
         const url = `https://api.quran.com/api/v4/verses/by_page/${page}?translations=87&fields=text_uthmani`;
         const res = await fetch(url);
-        if (!res.ok) throw new Error('Quran.com request failed');
+        if (!res.ok) throw new Error('API failed');
         const data = await res.json();
-        if (!data.verses || data.verses.length === 0) throw new Error('No verses');
-
         return data.verses.map(v => {
-          const parts = v.verse_key.split(':');
-          const suraNum = parseInt(parts[0], 10);
-          const ayaNum = parts[1];
-          const sInfo = SURAHS.find(s => s.n === suraNum);
-          const rawTrans = (v.translations && v.translations[0]) ? v.translations[0].text : '';
-          const cleanTrans = rawTrans.replace(/<[^>]*>/g, '').trim();
-
+          const [sura, aya] = v.verse_key.split(':');
+          const sInfo = SURAHS.find(s => s.n === parseInt(sura, 10));
           return {
-            surahName: sInfo ? sInfo.name : `سورة ${suraNum}`,
-            surahEnglish: sInfo ? sInfo.name : `Surah ${suraNum}`,
-            numberInSurah: ayaNum,
+            surahName: sInfo ? sInfo.name : `سورة ${sura}`,
+            surahEnglish: sInfo ? sInfo.name : `Surah ${sura}`,
+            numberInSurah: aya,
             arabicText: v.text_uthmani || '',
-            amharicText: cleanTrans
+            amharicText: (v.translations[0]?.text || '').replace(/<[^>]*>/g, '').trim()
           };
         });
       }
 
-      // Provider 2: QuranEnc.com API
-      async function fetchFromQuranEnc(page) {
-        const url = `https://quranenc.com/api/v1/translation/page/amharic_sadiq/${page}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('QuranEnc request failed');
-        const data = await res.json();
-        if (!data.result || data.result.length === 0) throw new Error('No result');
-
-        return data.result.map(v => {
-          const suraNum = parseInt(v.sura, 10);
-          const sInfo = SURAHS.find(s => s.n === suraNum);
-          return {
-            surahName: sInfo ? sInfo.name : `سورة ${suraNum}`,
-            surahEnglish: sInfo ? sInfo.name : `Surah ${suraNum}`,
-            numberInSurah: v.aya,
-            arabicText: v.arabic_text || '',
-            amharicText: (v.translation || '').replace(/<[^>]*>/g, '').trim()
-          };
-        });
-      }
-
-      // Provider 3: AlQuran Cloud API
-      async function fetchFromAlQuranCloud(page) {
-        const url = `https://api.alquran.cloud/v1/page/${page}/editions/quran-uthmani,am.sadiq`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('AlQuran Cloud request failed');
-        const data = await res.json();
-        if (data.code !== 200 || !data.data || data.data.length < 2) throw new Error('Invalid data');
-
-        const arAyahs = data.data[0].ayahs;
-        const amAyahs = data.data[1].ayahs;
-        return arAyahs.map((ar, idx) => ({
-          surahName: ar.surah.name,
-          surahEnglish: ar.surah.englishName,
-          numberInSurah: ar.numberInSurah,
-          arabicText: ar.text,
-          amharicText: amAyahs[idx] ? amAyahs[idx].text.replace(/<[^>]*>/g, '').trim() : ''
-        }));
-      }
-
-      // Multi-Source Translation Loader
       async function loadTranslation(page) {
         transPageBadge.innerText = `ገጽ ${page}`;
 
-        if (transCache.has(page)) {
-          renderTranslation(transCache.get(page));
+        // 1. Instant load from local repository file (amharic.json)
+        if (localAmharicData && localAmharicData[page]) {
+          renderTranslation(localAmharicData[page]);
           return;
         }
 
         transContent.innerHTML = `
           <div class="trans-loading">
             <div class="spinner"></div>
-            <span>የገጽ ${page} ትርጉም በመጫን ላይ...</span>
+            <span>ትርጉሙን በመጫን ላይ...</span>
           </div>`;
 
-        const providers = [fetchFromQuranCom, fetchFromQuranEnc, fetchFromAlQuranCloud];
-        let combined = null;
-
-        for (const fetcher of providers) {
-          try {
-            combined = await fetcher(page);
-            if (combined && combined.length > 0) break;
-          } catch (e) {
-            console.warn('Provider failed, switching to backup...', e);
-          }
+        const hasLocal = await initLocalAmharicData();
+        if (hasLocal && localAmharicData[page]) {
+          renderTranslation(localAmharicData[page]);
+          return;
         }
 
-        if (combined && combined.length > 0) {
-          transCache.set(page, combined);
-          renderTranslation(combined);
-        } else {
+        // 2. Fallback to API if amharic.json isn't uploaded yet
+        try {
+          const onlineData = await fetchFromQuranCom(page);
+          renderTranslation(onlineData);
+        } catch (err) {
           transContent.innerHTML = `
             <div class="trans-error">
               <span>⚠️ ትርጉሙን መጫን አልተቻለም።</span>
-              <span style="font-size: 0.8rem;">እባክዎ የበይነመረብ (Internet) ግንኙነትዎን ያረጋግጡ።</span>
+              <span style="font-size: 0.8rem;">እባክዎ amharic.json ፋይል በGitHub repo ውስጥ መኖሩን ያረጋግጡ።</span>
               <button class="btn" style="border: 1px solid var(--border); margin-top: 0.5rem;" onclick="window.retryTranslation(${page})">እንደገና ሞክር</button>
             </div>`;
         }
@@ -1192,10 +1150,11 @@
         }
       });
 
-      // Restore saved reading position on load
+      // Restore saved reading position and preload amharic.json in the background
       setTimeout(() => {
         scrollToPage(currentPage, false);
         showUI();
+        initLocalAmharicData();
       }, 100);
     })();
   </script>
