@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>القرآن الكريم مع الترجمة الأمهرية — Holy Quran with Amharic Translation</title>
+  <title>The Holy Quran — القرآن الكريم</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -117,7 +117,7 @@
       min-height: 400px;
     }
 
-    /* Smart Quran Page Number Badge */
+    /* Smart Quran Page Number Badge (Arabic Surah Name + English Page) */
     .page-number-badge {
       position: absolute;
       bottom: 14px;
@@ -128,18 +128,19 @@
       -webkit-backdrop-filter: blur(14px);
       border: 1px solid rgba(212, 175, 55, 0.38);
       border-radius: 9999px;
-      padding: 0.26rem 0.9rem;
+      padding: 0.26rem 0.95rem;
       color: var(--accent);
       font-size: 0.82rem;
       font-weight: 600;
       display: inline-flex;
       align-items: center;
-      gap: 0.45rem;
+      gap: 0.5rem;
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
       z-index: 10;
       pointer-events: none;
       white-space: nowrap;
       transition: var(--transition);
+      letter-spacing: 0.3px;
     }
 
     .page-wrapper:hover .page-number-badge {
@@ -151,8 +152,9 @@
 
     .badge-surah {
       font-family: 'Amiri', serif;
-      font-size: 0.95rem;
+      font-size: 1.05rem;
       color: #fff;
+      direction: rtl;
     }
 
     .badge-dot {
@@ -160,17 +162,10 @@
       font-size: 0.75rem;
     }
 
-    .badge-ar {
-      font-family: 'Amiri', serif;
-      font-size: 0.92rem;
-      color: var(--accent-hover);
-    }
-
     .badge-en {
       font-family: 'Inter', sans-serif;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      direction: ltr;
+      font-size: 0.82rem;
+      color: var(--accent-hover);
     }
 
     /* Floating Toolbar Container */
@@ -270,15 +265,12 @@
     }
 
     .btn-index {
-      font-family: 'Amiri', serif;
-      font-size: 1.15rem;
-      font-weight: bold;
+      font-size: 0.88rem;
+      font-weight: 600;
       color: var(--accent);
-      padding: 0.25rem 0.65rem;
     }
 
     .btn-trans {
-      font-family: 'Noto Sans Ethiopic', sans-serif;
       font-size: 0.88rem;
       font-weight: 600;
       color: var(--accent);
@@ -318,7 +310,6 @@
       color: var(--text-muted);
       font-weight: 400;
       font-size: 0.75rem;
-      direction: ltr;
     }
 
     /* Floating Page Scrubber Popover */
@@ -377,7 +368,6 @@
       align-items: center;
       gap: 0.3rem;
       font-size: 0.82rem;
-      direction: ltr;
     }
 
     .popover-input {
@@ -433,7 +423,6 @@
       width: min(560px, 94vw);
       border-right: 1px solid var(--border);
       transform: translateX(-100%);
-      direction: ltr;
     }
     .drawer-left.open { transform: translateX(0); }
 
@@ -445,15 +434,8 @@
       align-items: center;
     }
 
-    .drawer-title-ar {
-      font-family: 'Amiri', serif;
-      font-size: 1.3rem;
-      color: var(--accent);
-    }
-
-    .drawer-title-am {
-      font-family: 'Noto Sans Ethiopic', sans-serif;
-      font-size: 1.05rem;
+    .drawer-title {
+      font-size: 1.1rem;
       font-weight: 700;
       color: var(--accent);
       display: flex;
@@ -465,6 +447,7 @@
       font-size: 0.75rem;
       color: var(--text-muted);
       font-weight: 400;
+      margin-top: 2px;
     }
 
     .drawer-search {
@@ -507,13 +490,19 @@
     .surah-num {
       color: var(--text-muted);
       font-size: 0.8rem;
-      margin-left: 0.5rem;
+      margin-right: 0.6rem;
+    }
+
+    .surah-name-ar {
+      font-family: 'Amiri', serif;
+      font-size: 1.15rem;
+      color: #fff;
+      direction: rtl;
     }
 
     .surah-page {
       font-size: 0.8rem;
       color: var(--accent);
-      direction: ltr;
     }
 
     /* Translation Cards Area */
@@ -548,14 +537,20 @@
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
-      font-size: 0.8rem;
-      font-weight: 700;
+      font-size: 0.82rem;
+      font-weight: 600;
       color: var(--accent);
       background: rgba(212, 175, 55, 0.12);
       border-radius: 6px;
       padding: 0.2rem 0.55rem;
       width: fit-content;
-      font-family: 'Noto Sans Ethiopic', sans-serif;
+    }
+
+    .ayah-badge .surah-ar {
+      font-family: 'Amiri', serif;
+      font-size: 1rem;
+      color: #fff;
+      margin: 0 0.2rem;
     }
 
     .ayah-arabic {
@@ -585,7 +580,6 @@
       gap: 0.8rem;
       color: var(--text-muted);
       text-align: center;
-      font-family: 'Noto Sans Ethiopic', sans-serif;
     }
 
     .spinner {
@@ -612,13 +606,13 @@
   <footer class="bottom-bar" id="bottomBar">
     <div class="page-popover" id="pagePopover">
       <div class="popover-header">
-        <span class="popover-title">انتقال إلى صفحة</span>
+        <span class="popover-title">Jump to Page</span>
         <div class="popover-input-wrap">
           <input type="number" class="popover-input" id="popoverInput" min="1" max="604" value="1" />
           <span style="color: var(--text-muted);">/ 604</span>
         </div>
       </div>
-      <input type="range" class="popover-slider" id="popoverSlider" min="1" max="604" value="1" dir="ltr" />
+      <input type="range" class="popover-slider" id="popoverSlider" min="1" max="604" value="1" />
     </div>
 
     <div class="dock-container" id="dockContainer">
@@ -627,22 +621,21 @@
       </div>
 
       <div class="dock-section">
-        <button class="btn btn-index" id="btnIndex" title="فهرس السور">
+        <button class="btn btn-index" id="btnIndex" title="Surah Index">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 6h16M4 12h16M4 18h7"></path></svg>
-          <span>الفهرس</span>
+          <span>Surahs</span>
         </button>
 
-        <!-- Amharic Translation Button -->
-        <button class="btn btn-trans" id="btnTrans" title="የአማርኛ ትርጉም (ሳዲቅ እና ሳኒ)">
+        <button class="btn btn-trans" id="btnTrans" title="Amharic Translation">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><path d="M8 7h8"></path><path d="M8 11h6"></path></svg>
-          <span>ትርጉም</span>
+          <span>Translation</span>
         </button>
 
-        <button class="btn btn-icon" id="btnTheme" title="تغيير النمط (عادي / ليلي / قديم)">
+        <button class="btn btn-icon" id="btnTheme" title="Toggle Theme (Normal / Dark / Sepia)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
 
-        <button class="btn btn-icon" id="btnFullscreen" title="شاشة كاملة (F)">
+        <button class="btn btn-icon" id="btnFullscreen" title="Full Screen (F)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
         </button>
       </div>
@@ -650,48 +643,48 @@
       <div class="dock-divider"></div>
 
       <div class="dock-section">
-        <button class="btn btn-icon" id="btnNext" title="الصفحة التالية">
+        <button class="btn btn-icon" id="btnPrev" title="Previous Page">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
         </button>
 
-        <button class="btn-page-pill" id="btnPagePill" title="انقر لفتح شريط الانتقال">
-          <span id="pillPageText">ص 1</span>
+        <button class="btn-page-pill" id="btnPagePill" title="Click to jump to page">
+          <span id="pillPageText">Page 1</span>
           <span class="total-pages-label">/ 604</span>
         </button>
 
-        <button class="btn btn-icon" id="btnPrev" title="الصفحة السابقة">
+        <button class="btn btn-icon" id="btnNext" title="Next Page">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </button>
       </div>
     </div>
   </footer>
 
-  <!-- Surah Quick-Picker Drawer -->
+  <!-- Surah Quick-Picker Drawer (Right) -->
   <aside class="drawer drawer-right" id="surahDrawer">
     <div class="drawer-header">
-      <span class="drawer-title-ar">سور القرآن الكريم</span>
+      <span class="drawer-title">Surah Index</span>
       <button class="btn btn-icon" id="btnCloseDrawer">✕</button>
     </div>
-    <input type="text" class="drawer-search" id="searchSurah" placeholder="ابحث عن سورة..." />
+    <input type="text" class="drawer-search" id="searchSurah" placeholder="Search Surah..." />
     <ul class="surah-list" id="surahList"></ul>
   </aside>
 
-  <!-- Arabic & Amharic Translation Drawer Panel -->
+  <!-- Arabic & Amharic Translation Drawer Panel (Left) -->
   <aside class="drawer drawer-left" id="transDrawer">
     <div class="drawer-header">
       <div>
-        <div class="drawer-title-am">
-          <span>የቁርኣን ትርጉም</span>
-          <span id="transPageBadge" style="font-size: 0.8rem; color: var(--accent); background: rgba(212,175,55,0.15); padding: 0.15rem 0.5rem; border-radius: 999px;">ገጽ 1</span>
+        <div class="drawer-title">
+          <span>Translation</span>
+          <span id="transPageBadge" style="font-size: 0.8rem; color: var(--accent); background: rgba(212,175,55,0.15); padding: 0.15rem 0.5rem; border-radius: 999px;">Page 1</span>
         </div>
-        <span class="drawer-subtitle">ሳዲቅ እና ሳኒ ሐቢብ • ከአረብኛ ጽሑፍ ጋር (qur-ar & qur-am)</span>
+        <div class="drawer-subtitle">Amharic (Sadiq & Sani) with Arabic Text</div>
       </div>
       <button class="btn btn-icon" id="btnCloseTrans">✕</button>
     </div>
     <div class="trans-content" id="transContent">
       <div class="trans-loading">
         <div class="spinner"></div>
-        <span>ጽሑፉንና ትርጉሙን በመጫን ላይ...</span>
+        <span>Loading text and translation...</span>
       </div>
     </div>
   </aside>
@@ -715,10 +708,7 @@
         return `./img/page${String(page).padStart(3, '0')}.webp`;
       }
 
-      function toArabicDigits(num) {
-        return String(num).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
-      }
-
+      // Surah names kept strictly Arabic
       const SURAHS = [
         { n: 1, name: "الفاتحة", page: 1 }, { n: 2, name: "البقرة", page: 2 },
         { n: 3, name: "آل عمران", page: 50 }, { n: 4, name: "النساء", page: 77 },
@@ -831,17 +821,16 @@
 
         const img = document.createElement('img');
         img.className = 'quran-page';
-        img.alt = `صفحة ${i}`;
+        img.alt = `Page ${i}`;
         img.dataset.src = getPageUrl(i);
 
+        // Smart Modern Quran Page Number Badge (Arabic Surah Name + English Page)
         const badge = document.createElement('div');
         badge.className = 'page-number-badge';
         badge.innerHTML = `
           <span class="badge-surah">${getSurahNameForPage(i)}</span>
           <span class="badge-dot">•</span>
-          <span class="badge-ar">ص ${toArabicDigits(i)}</span>
-          <span class="badge-dot">•</span>
-          <span class="badge-en">${i}</span>
+          <span class="badge-en">Page ${i}</span>
         `;
 
         wrapper.appendChild(img);
@@ -869,7 +858,7 @@
 
       document.querySelectorAll('.quran-page').forEach(img => imageObserver.observe(img));
 
-      // Universal Tanzil Text Parser (handles both `sura|aya|text` and sequential lines)
+      // Universal Tanzil Text Parser
       function parseTanzilText(rawText) {
         const map = new Map();
         const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
@@ -886,7 +875,7 @@
             }
           });
         } else {
-          // Sequential 6,236 lines without delimiter
+          // Sequential 6,236 lines
           let lineIdx = 0;
           for (let s = 1; s <= 114; s++) {
             const count = SURAH_AYAH_COUNTS[s - 1];
@@ -916,7 +905,7 @@
           arabicTextMap = parseTanzilText(arRaw);
           amharicTextMap = parseTanzilText(amRaw);
 
-          console.log(`✅ Loaded ${arabicTextMap.size} Arabic & ${amharicTextMap.size} Amharic verses from repo.`);
+          console.log(`✅ Loaded ${arabicTextMap.size} Arabic & ${amharicTextMap.size} Amharic verses from repository.`);
           return true;
         } catch (e) {
           console.warn('Could not load local qur-ar.txt or qur-am.txt:', e);
@@ -952,21 +941,21 @@
 
       // Load Translation and Arabic side-by-side
       async function loadTranslation(page) {
-        transPageBadge.innerText = `ገጽ ${page}`;
+        transPageBadge.innerText = `Page ${page}`;
 
         transContent.innerHTML = `
           <div class="trans-loading">
             <div class="spinner"></div>
-            <span>የገጽ ${page} ጽሑፍና ትርጉም ከመዝገብ (qur-ar & qur-am) በመጫን ላይ...</span>
+            <span>Loading text and translation for Page ${page}...</span>
           </div>`;
 
         const filesOk = await loadLocalTexts();
         if (!filesOk) {
           transContent.innerHTML = `
             <div class="trans-error">
-              <span>⚠️ qur-ar.txt ወይም qur-am.txt አልተገኘም።</span>
-              <span style="font-size: 0.8rem;">እባክዎ ሁለቱም ፋይሎች በGitHub repo ስር መኖራቸውን ያረጋግጡ።</span>
-              <button class="btn" style="border: 1px solid var(--border); margin-top: 0.5rem;" onclick="window.retryTranslation(${page})">እንደገና ሞክር</button>
+              <span>⚠️ Could not find qur-ar.txt or qur-am.txt.</span>
+              <span style="font-size: 0.8rem;">Please make sure both files are uploaded in the root of your repository.</span>
+              <button class="btn" style="border: 1px solid var(--border); margin-top: 0.5rem;" onclick="window.retryTranslation(${page})">Retry</button>
             </div>`;
           return;
         }
@@ -977,9 +966,9 @@
         } catch (err) {
           transContent.innerHTML = `
             <div class="trans-error">
-              <span>⚠️ የገጹን አያቶች ዝርዝር ማግኘት አልተቻለም።</span>
-              <span style="font-size: 0.8rem;">እባክዎ የበይነመረብ ግንኙነትዎን ያረጋግጡ።</span>
-              <button class="btn" style="border: 1px solid var(--border); margin-top: 0.5rem;" onclick="window.retryTranslation(${page})">እንደገና ሞክር</button>
+              <span>⚠️ Failed to retrieve verses for Page ${page}.</span>
+              <span style="font-size: 0.8rem;">Please check your internet connection.</span>
+              <button class="btn" style="border: 1px solid var(--border); margin-top: 0.5rem;" onclick="window.retryTranslation(${page})">Retry</button>
             </div>`;
         }
       }
@@ -989,14 +978,14 @@
       // Render Arabic Verse + Amharic Translation
       function renderVerseCards(verses) {
         if (!verses || verses.length === 0) {
-          transContent.innerHTML = '<div class="trans-error">ምንም አያህ አልተገኘም።</div>';
+          transContent.innerHTML = '<div class="trans-error">No verses found for this page.</div>';
           return;
         }
 
         transContent.innerHTML = '';
         verses.forEach(v => {
           const sInfo = SURAHS.find(s => s.n === v.sura);
-          const surahTitle = sInfo ? `${sInfo.name} (${sInfo.n})` : `ሱራ ${v.sura}`;
+          const arabicSurahName = sInfo ? sInfo.name : `سورة ${v.sura}`;
           const arText = arabicTextMap ? (arabicTextMap.get(v.key) || '') : '';
           const amText = amharicTextMap ? (amharicTextMap.get(v.key) || 'ትርጉም አልተገኘም') : '';
 
@@ -1004,7 +993,9 @@
           card.className = 'trans-card';
           card.innerHTML = `
             <div class="ayah-badge">
-              <span>ሱራ ${surahTitle}</span> : <span>አያህ ${v.aya}</span>
+              <span>Surah</span>
+              <span class="surah-ar">${arabicSurahName}</span>
+              <span>(${v.sura})</span> : <span>Ayah ${v.aya}</span>
             </div>
             ${arText ? `<div class="ayah-arabic">${arText}</div>` : ''}
             <div class="ayah-amharic">${amText}</div>
@@ -1018,7 +1009,7 @@
         currentPage = p;
         popoverSlider.value = p;
         popoverInput.value = p;
-        pillPageText.innerText = `ص ${p}`;
+        pillPageText.innerText = `Page ${p}`;
         progressFill.style.width = `${(p / TOTAL_PAGES) * 100}%`;
         localStorage.setItem(STORAGE_KEY, p);
 
@@ -1084,7 +1075,7 @@
         if (currentPage > 1) scrollToPage(currentPage - 1);
       }
 
-      // Populate Surah List
+      // Populate Surah List (Surah Name is strictly Arabic)
       function renderSurahs(filter = '') {
         surahList.innerHTML = '';
         SURAHS
@@ -1093,8 +1084,11 @@
             const li = document.createElement('li');
             li.className = 'surah-item';
             li.innerHTML = `
-              <span><span class="surah-num">${s.n}.</span> ${s.name}</span>
-              <span class="surah-page">ص ${s.page}</span>
+              <div>
+                <span class="surah-num">${s.n}.</span>
+                <span class="surah-name-ar">${s.name}</span>
+              </div>
+              <span class="surah-page">Page ${s.page}</span>
             `;
             li.onclick = () => {
               scrollToPage(s.page);
@@ -1205,8 +1199,8 @@
       window.addEventListener('keydown', e => {
         if (e.target.tagName === 'INPUT') return;
 
-        if (e.code === 'ArrowLeft') nextPage();
-        else if (e.code === 'ArrowRight') prevPage();
+        if (['ArrowRight', 'PageDown'].includes(e.code)) nextPage();
+        else if (['ArrowLeft', 'PageUp'].includes(e.code)) prevPage();
         else if (e.key.toLowerCase() === 'f') btnFullscreen.click();
         else if (e.key === 'Escape') {
           surahDrawer.classList.remove('open');
@@ -1220,7 +1214,7 @@
       setTimeout(() => {
         scrollToPage(currentPage, false);
         showUI();
-        loadLocalTexts(); // Preload both qur-ar.txt and qur-am.txt in background
+        loadLocalTexts(); // Preload both files in background
       }, 100);
     })();
   </script>
