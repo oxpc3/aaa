@@ -61,7 +61,7 @@
       padding-bottom: 110px;
     }
 
-    /* Sleek Custom Scrollbar */
+    /* Custom Scrollbar */
     #scrollContainer::-webkit-scrollbar,
     .trans-content::-webkit-scrollbar,
     .surah-list::-webkit-scrollbar {
@@ -374,7 +374,7 @@
     /* Left Drawer (Amharic Translation Panel) */
     .drawer-left {
       left: 0;
-      width: min(520px, 94vw);
+      width: min(540px, 94vw);
       border-right: 1px solid var(--border);
       transform: translateX(-100%);
       direction: ltr;
@@ -492,7 +492,7 @@
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       font-weight: 600;
       color: var(--accent);
       background: rgba(212, 175, 55, 0.12);
@@ -553,7 +553,7 @@
 
   <!-- Bottom Floating Toolbar -->
   <footer class="bottom-bar" id="bottomBar">
-    <!-- Floating Page Scrubber Popover (Floats Above the Dock) -->
+    <!-- Floating Page Scrubber Popover -->
     <div class="page-popover" id="pagePopover">
       <div class="popover-header">
         <span class="popover-title">انتقال إلى صفحة</span>
@@ -565,7 +565,7 @@
       <input type="range" class="popover-slider" id="popoverSlider" min="1" max="604" value="1" dir="ltr" />
     </div>
 
-    <!-- Solid Fixed-Size Dock (NEVER EXPANDS) -->
+    <!-- Solid Fixed-Size Dock (Never Expands) -->
     <div class="dock-container" id="dockContainer">
       <div class="progress-line">
         <div class="progress-fill" id="progressFill"></div>
@@ -631,7 +631,7 @@
           <span>የቁርኣን ትርጉም</span>
           <span id="transPageBadge" style="font-size: 0.8rem; color: var(--accent); background: rgba(212,175,55,0.15); padding: 0.15rem 0.5rem; border-radius: 999px;">ገጽ 1</span>
         </div>
-        <span class="drawer-subtitle">ሳዲቅ እና ሳኒ ሐቢብ (Tanzil am.sadiq)</span>
+        <span class="drawer-subtitle">ሳዲቅ እና ሳኒ ሐቢብ (Muhammed Sadiq & Sani)</span>
       </div>
       <button class="btn btn-icon" id="btnCloseTrans">✕</button>
     </div>
@@ -718,7 +718,7 @@
       let hideTimeout = null;
       let isProgrammaticScroll = false;
       let isHoveringDock = false;
-      const transCache = new Map(); // Cache translations by page number
+      const transCache = new Map();
 
       // Elements
       const scrollContainer = document.getElementById('scrollContainer');
@@ -779,7 +779,73 @@
 
       document.querySelectorAll('.quran-page').forEach(img => imageObserver.observe(img));
 
-      // Fetch Amharic Translation for a specific Page
+      // Provider 1: Quran.com API (ID 87 = Sadiq & Sani Habib, completely unblocked)
+      async function fetchFromQuranCom(page) {
+        const url = `https://api.quran.com/api/v4/verses/by_page/${page}?translations=87&fields=text_uthmani`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Quran.com request failed');
+        const data = await res.json();
+        if (!data.verses || data.verses.length === 0) throw new Error('No verses');
+
+        return data.verses.map(v => {
+          const parts = v.verse_key.split(':');
+          const suraNum = parseInt(parts[0], 10);
+          const ayaNum = parts[1];
+          const sInfo = SURAHS.find(s => s.n === suraNum);
+          const rawTrans = (v.translations && v.translations[0]) ? v.translations[0].text : '';
+          const cleanTrans = rawTrans.replace(/<[^>]*>/g, '').trim();
+
+          return {
+            surahName: sInfo ? sInfo.name : `سورة ${suraNum}`,
+            surahEnglish: sInfo ? sInfo.name : `Surah ${suraNum}`,
+            numberInSurah: ayaNum,
+            arabicText: v.text_uthmani || '',
+            amharicText: cleanTrans
+          };
+        });
+      }
+
+      // Provider 2: QuranEnc.com API (Amharic Sadiq)
+      async function fetchFromQuranEnc(page) {
+        const url = `https://quranenc.com/api/v1/translation/page/amharic_sadiq/${page}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('QuranEnc request failed');
+        const data = await res.json();
+        if (!data.result || data.result.length === 0) throw new Error('No result');
+
+        return data.result.map(v => {
+          const suraNum = parseInt(v.sura, 10);
+          const sInfo = SURAHS.find(s => s.n === suraNum);
+          return {
+            surahName: sInfo ? sInfo.name : `سورة ${suraNum}`,
+            surahEnglish: sInfo ? sInfo.name : `Surah ${suraNum}`,
+            numberInSurah: v.aya,
+            arabicText: v.arabic_text || '',
+            amharicText: (v.translation || '').replace(/<[^>]*>/g, '').trim()
+          };
+        });
+      }
+
+      // Provider 3: AlQuran Cloud API
+      async function fetchFromAlQuranCloud(page) {
+        const url = `https://api.alquran.cloud/v1/page/${page}/editions/quran-uthmani,am.sadiq`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('AlQuran Cloud request failed');
+        const data = await res.json();
+        if (data.code !== 200 || !data.data || data.data.length < 2) throw new Error('Invalid data');
+
+        const arAyahs = data.data[0].ayahs;
+        const amAyahs = data.data[1].ayahs;
+        return arAyahs.map((ar, idx) => ({
+          surahName: ar.surah.name,
+          surahEnglish: ar.surah.englishName,
+          numberInSurah: ar.numberInSurah,
+          arabicText: ar.text,
+          amharicText: amAyahs[idx] ? amAyahs[idx].text.replace(/<[^>]*>/g, '').trim() : ''
+        }));
+      }
+
+      // Multi-Source Translation Loader
       async function loadTranslation(page) {
         transPageBadge.innerText = `ገጽ ${page}`;
 
@@ -794,38 +860,33 @@
             <span>የገጽ ${page} ትርጉም በመጫን ላይ...</span>
           </div>`;
 
-        try {
-          // Fetch Arabic Uthmani and Amharic Sadiq translation together
-          const res = await fetch(`https://api.alquran.cloud/v1/page/${page}/editions/quran-uthmani,am.sadiq`);
-          if (!res.ok) throw new Error('Network error');
-          const data = await res.json();
+        const providers = [fetchFromQuranCom, fetchFromQuranEnc, fetchFromAlQuranCloud];
+        let combined = null;
 
-          if (data.code === 200 && data.data.length >= 2) {
-            const arabicAyahs = data.data[0].ayahs;
-            const amharicAyahs = data.data[1].ayahs;
-
-            const combined = arabicAyahs.map((ar, idx) => ({
-              surahName: ar.surah.name,
-              surahEnglish: ar.surah.englishName,
-              numberInSurah: ar.numberInSurah,
-              arabicText: ar.text,
-              amharicText: amharicAyahs[idx] ? amharicAyahs[idx].text : ''
-            }));
-
-            transCache.set(page, combined);
-            renderTranslation(combined);
-          } else {
-            throw new Error('Data format error');
+        for (const fetcher of providers) {
+          try {
+            combined = await fetcher(page);
+            if (combined && combined.length > 0) break;
+          } catch (e) {
+            console.warn('Provider failed, switching to backup...', e);
           }
-        } catch (err) {
+        }
+
+        if (combined && combined.length > 0) {
+          transCache.set(page, combined);
+          renderTranslation(combined);
+        } else {
           transContent.innerHTML = `
             <div class="trans-error">
               <span>⚠️ ትርጉሙን መጫን አልተቻለም።</span>
               <span style="font-size: 0.8rem;">እባክዎ የበይነመረብ (Internet) ግንኙነትዎን ያረጋግጡ።</span>
-              <button class="btn" style="border: 1px solid var(--border); margin-top: 0.5rem;" onclick="loadTranslation(${page})">እንደገና ሞክር</button>
+              <button class="btn" style="border: 1px solid var(--border); margin-top: 0.5rem;" onclick="window.retryTranslation(${page})">እንደገና ሞክር</button>
             </div>`;
         }
       }
+
+      // Global reference for retry button
+      window.retryTranslation = loadTranslation;
 
       function renderTranslation(ayahs) {
         if (!ayahs || ayahs.length === 0) {
